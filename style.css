@@ -834,3 +834,15 @@ select option {
         font-size: 1.2rem;
     }
 }
+
+/* Fix WhatsApp button layout */
+.whatsapp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.whatsapp-btn i {
+    font-size: 1.2rem;
+}
