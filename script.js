@@ -256,7 +256,7 @@ function formatPrice(price) {
 
 function checkPassword() {
     const password = passwordInput.value;
-    if (password === 'lufisheli1') {
+    if (password === 'loofisheli1') {
         isAdmin = true;
         adminControls.classList.remove('hidden');
         adminLoginBtn.innerHTML = '<i class="fa-solid fa-unlock"></i>';
@@ -335,8 +335,8 @@ function openImageModal(id = null) {
 function handleImageSelect(e) {
     const file = e.target.files[0];
     if (file) {
-        if (file.size > 4 * 1024 * 1024) {
-            alert('התמונה גדולה מדי. אנא בחר תמונה קטנה מ-4MB.');
+        if (file.size > 10 * 1024 * 1024) {
+            alert('התמונה גדולה מדי. אנא בחר תמונה קטנה מ-10MB.');
             imageUploadInput.value = '';
             return;
         }
