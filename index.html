@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>גלריית עבודות</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <header class="main-header">
+            <img src="logo.png" alt="Tom Art Studio" class="logo-img">
+            <button id="admin-login-btn" class="icon-btn" aria-label="כניסת מנהל">
+                <i class="fa-solid fa-user-lock"></i>
+            </button>
+        </header>
+
+        <!-- Folder Filters -->
+        <div id="folder-filters" class="folder-filters">
+            <!-- Folder buttons will be injected here by JS -->
+        </div>
+
+        <main id="gallery-grid" class="gallery-grid">
+            <!-- Images will be injected here by JS -->
+        </main>
+
+        <!-- Admin Controls (Hidden by default) -->
+        <div id="admin-controls" class="admin-controls hidden">
+            <button id="manage-folders-btn" class="fab-btn fab-btn-secondary" aria-label="ניהול תיקיות">
+                <i class="fa-solid fa-folder"></i>
+            </button>
+            <button id="add-image-btn" class="fab-btn">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2>כניסת מנהל</h2>
+            <input type="password" id="password-input" placeholder="הכנס סיסמה">
+            <button id="login-submit-btn" class="primary-btn">התחבר</button>
+            <p id="login-error" class="error-msg hidden">סיסמה שגויה</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Image Modal -->
+    <div id="image-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">הוספת תמונה</h2>
+
+            <input type="text" id="title-input" placeholder="מספר יצירה (לדוגמה: 5)">
+            <input type="number" id="price-input" placeholder="מחיר (בשקלים)">
+
+            <select id="folder-select" class="folder-select">
+                <option value="">ללא תיקייה</option>
+                <!-- JavaScript will populate folders -->
+            </select>
+
+            <div class="file-upload-container">
+                <label for="image-upload" class="file-upload-label">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>בחר תמונה</span>
+                </label>
+                <input type="file" id="image-upload" accept="image/*">
+                <div id="image-preview-container" class="hidden">
+                    <img id="image-preview" src="" alt="Preview">
+                </div>
+            </div>
+
+            <button id="save-image-btn" class="primary-btn">שמור</button>
+            <button id="delete-image-btn" class="danger-btn hidden">מחק תמונה</button>
+        </div>
+    </div>
+
+    <!-- Folder Management Modal -->
+    <div id="folder-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2>ניהול תיקיות</h2>
+
+            <div class="folder-list" id="folder-list">
+                <!-- Folder list will be injected here by JS -->
+            </div>
+
+            <div class="add-folder-section">
+                <input type="text" id="new-folder-input" placeholder="שם תיקייה חדשה">
+                <button id="add-folder-btn" class="primary-btn">
+                    <i class="fa-solid fa-plus"></i> הוסף תיקייה
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Confirmation Modal -->
+    <div id="whatsapp-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2>שליחת הודעה</h2>
+            <p>האם אתה מעוניין לשלוח הודעת ווצאפ למוכר בקשר למוצר זה?</p>
+            <div class="modal-actions">
+                <button id="whatsapp-yes-btn" class="primary-btn whatsapp-btn">כן, שלח הודעה <i
+                        class="fa-brands fa-whatsapp"></i></button>
+                <button id="whatsapp-no-btn" class="danger-btn">לא, תודה</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="modal hidden lightbox-modal">
+        <span class="close-modal lightbox-close">&times;</span>
+        <img id="lightbox-image" src="" alt="Full Screen Image">
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
