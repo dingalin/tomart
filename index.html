@@ -4,7 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>גלריית עבודות</title>
+
+    <!-- SEO Meta Tags -->
+    <title>Tom Art Studio - גלריית עבודות אמנות מקורית | ציורים ועבודות יד</title>
+    <meta name="description"
+        content="גלריית עבודות אמנות מקורית של תום - ציורים, עבודות יד, אמנות ייחודית למכירה. צפו בגלריה המלאה והזמינו עבודות בהתאמה אישית.">
+    <meta name="keywords"
+        content="אמנות, ציורים, עבודות יד, גלריה, תום, אמנות מקורית, ציורי שמן, ציורי אקריליק, אמנות למכירה">
+    <meta name="author" content="Tom Art Studio">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Hebrew">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dingalin.github.io/tomart/">
+    <meta property="og:title" content="Tom Art Studio - גלריית עבודות אמנות מקורית">
+    <meta property="og:description"
+        content="צפו בגלריה המלאה של עבודות אמנות מקוריות - ציורים, עבודות יד ואמנות ייחודית למכירה">
+    <meta property="og:image" content="https://dingalin.github.io/tomart/logo.png">
+    <meta property="og:locale" content="he_IL">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://dingalin.github.io/tomart/">
+    <meta property="twitter:title" content="Tom Art Studio - גלריית עבודות אמנות">
+    <meta property="twitter:description" content="גלריית עבודות אמנות מקורית - ציורים ועבודות יד">
+    <meta property="twitter:image" content="https://dingalin.github.io/tomart/logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -16,7 +45,7 @@
 
     <div class="app-container">
         <header class="main-header">
-            <img src="logo.png" alt="Tom Art Studio" class="logo-img">
+            <img src="logo.png" alt="Tom Art Studio - גלריית עבודות אמנות מקורית" class="logo-img">
             <button id="admin-login-btn" class="icon-btn" aria-label="כניסת מנהל">
                 <i class="fa-solid fa-user-lock"></i>
             </button>
@@ -36,33 +65,33 @@
             <button id="manage-folders-btn" class="fab-btn fab-btn-secondary" aria-label="ניהול תיקיות">
                 <i class="fa-solid fa-folder"></i>
             </button>
-            <button id="add-image-btn" class="fab-btn">
+            <button id="add-image-btn" class="fab-btn" aria-label="הוסף תמונה חדשה">
                 <i class="fa-solid fa-plus"></i>
             </button>
         </div>
     </div>
 
     <!-- Login Modal -->
-    <div id="login-modal" class="modal hidden">
+    <div id="login-modal" class="modal hidden" role="dialog" aria-labelledby="login-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
-            <h2>כניסת מנהל</h2>
-            <input type="password" id="password-input" placeholder="הכנס סיסמה">
+            <h2 id="login-title">כניסת מנהל</h2>
+            <input type="password" id="password-input" placeholder="הכנס סיסמה" aria-label="סיסמה">
             <button id="login-submit-btn" class="primary-btn">התחבר</button>
             <p id="login-error" class="error-msg hidden">סיסמה שגויה</p>
         </div>
     </div>
 
     <!-- Add/Edit Image Modal -->
-    <div id="image-modal" class="modal hidden">
+    <div id="image-modal" class="modal hidden" role="dialog" aria-labelledby="modal-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
             <h2 id="modal-title">הוספת תמונה</h2>
 
-            <input type="text" id="title-input" placeholder="מספר יצירה (לדוגמה: 5)">
-            <input type="number" id="price-input" placeholder="מחיר (בשקלים)">
+            <input type="text" id="title-input" placeholder="מספר יצירה (לדוגמה: 5)" aria-label="מספר יצירה">
+            <input type="number" id="price-input" placeholder="מחיר (בשקלים)" aria-label="מחיר">
 
-            <select id="folder-select" class="folder-select">
+            <select id="folder-select" class="folder-select" aria-label="בחר תיקייה">
                 <option value="">ללא תיקייה</option>
                 <!-- JavaScript will populate folders -->
             </select>
@@ -72,9 +101,9 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span>בחר תמונה</span>
                 </label>
-                <input type="file" id="image-upload" accept="image/*">
+                <input type="file" id="image-upload" accept="image/*" aria-label="העלה תמונה">
                 <div id="image-preview-container" class="hidden">
-                    <img id="image-preview" src="" alt="Preview">
+                    <img id="image-preview" src="" alt="תצוגה מקדימה של התמונה">
                 </div>
             </div>
 
@@ -84,17 +113,17 @@
     </div>
 
     <!-- Folder Management Modal -->
-    <div id="folder-modal" class="modal hidden">
+    <div id="folder-modal" class="modal hidden" role="dialog" aria-labelledby="folder-modal-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
-            <h2>ניהול תיקיות</h2>
+            <h2 id="folder-modal-title">ניהול תיקיות</h2>
 
             <div class="folder-list" id="folder-list">
                 <!-- Folder list will be injected here by JS -->
             </div>
 
             <div class="add-folder-section">
-                <input type="text" id="new-folder-input" placeholder="שם תיקייה חדשה">
+                <input type="text" id="new-folder-input" placeholder="שם תיקייה חדשה" aria-label="שם תיקייה חדשה">
                 <button id="add-folder-btn" class="primary-btn">
                     <i class="fa-solid fa-plus"></i> הוסף תיקייה
                 </button>
@@ -103,10 +132,10 @@
     </div>
 
     <!-- WhatsApp Confirmation Modal -->
-    <div id="whatsapp-modal" class="modal hidden">
+    <div id="whatsapp-modal" class="modal hidden" role="dialog" aria-labelledby="whatsapp-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
-            <h2>שליחת הודעה</h2>
+            <h2 id="whatsapp-title">שליחת הודעה</h2>
             <p>האם אתה מעוניין לשלוח הודעת ווצאפ למוכר בקשר למוצר זה?</p>
             <div class="modal-actions">
                 <button id="whatsapp-yes-btn" class="primary-btn whatsapp-btn">כן, שלח הודעה <i
@@ -117,9 +146,9 @@
     </div>
 
     <!-- Lightbox Modal -->
-    <div id="lightbox-modal" class="modal hidden lightbox-modal">
-        <span class="close-modal lightbox-close">&times;</span>
-        <img id="lightbox-image" src="" alt="Full Screen Image">
+    <div id="lightbox-modal" class="modal hidden lightbox-modal" role="dialog" aria-label="תצוגת תמונה מלאה">
+        <span class="close-modal lightbox-close" aria-label="סגור">&times;</span>
+        <img id="lightbox-image" src="" alt="תמונה בגודל מלא">
     </div>
 
     <script type="module" src="script.js"></script>
