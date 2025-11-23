@@ -359,18 +359,18 @@ function saveImage() {
         const imgRef = ref(db, `images/${editingId}`);
 
         if (imageUploadInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                set(imgRef, {
-                    src: e.target.result,
-                    price: price,
-                    title: title,
-                    folderId: folderId
-                }).then(() => {
-                    closeModal(imageModal);
-                }).catch(err => alert('שגיאה בשמירה: ' + err.message));
-            }
-            reader.readAsDataURL(imageUploadInput.files[0]);
+            compressImage(imageUploadInput.files[0])
+                .then(compressedDataUrl => {
+                    set(imgRef, {
+                        src: compressedDataUrl,
+                        price: price,
+                        title: title,
+                        folderId: folderId
+                    }).then(() => {
+                        closeModal(imageModal);
+                    }).catch(err => alert('שגיאה בשמירה: ' + err.message));
+                })
+                .catch(err => alert('שגיאה בכיווץ תמונה: ' + err.message));
         } else {
             const currentImg = images.find(i => i.id === editingId);
             set(imgRef, {
@@ -388,19 +388,19 @@ function saveImage() {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const newImgRef = push(imagesRef);
-            set(newImgRef, {
-                src: e.target.result,
-                price: price,
-                title: title,
-                folderId: folderId
-            }).then(() => {
-                closeModal(imageModal);
-            }).catch(err => alert('שגיאה בשמירה: ' + err.message));
-        }
-        reader.readAsDataURL(imageUploadInput.files[0]);
+        compressImage(imageUploadInput.files[0])
+            .then(compressedDataUrl => {
+                const newImgRef = push(imagesRef);
+                set(newImgRef, {
+                    src: compressedDataUrl,
+                    price: price,
+                    title: title,
+                    folderId: folderId
+                }).then(() => {
+                    closeModal(imageModal);
+                }).catch(err => alert('שגיאה בשמירה: ' + err.message));
+            })
+            .catch(err => alert('שגיאה בכיווץ תמונה: ' + err.message));
     }
 }
 
@@ -430,6 +430,57 @@ function sendWhatsApp() {
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
     closeModal(whatsappModal);
+}
+
+function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const maxWidth = 1600;
+        const maxHeight = 1600;
+        const reader = new FileReader();
+
+        reader.readAsDataURL(file);
+        reader.onload = function (event) {
+            const img = new Image();
+            img.src = event.target.result;
+
+            img.onload = function () {
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to JPEG with 0.7 quality
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(dataUrl);
+            };
+
+            img.onerror = function (err) {
+                reject(err);
+            };
+        };
+
+        reader.onerror = function (err) {
+            reject(err);
+        };
+    });
 }
 
 // Folder Management Functions
