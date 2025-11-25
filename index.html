@@ -3,129 +3,142 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <!-- SEO Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tom Art Studio - עבודות עץ ואפוקסי | שולחנות, מזוזות ואומנות בעץ</title>
     <meta name="description"
-        content="גלריית עבודות עץ ייחודיות בשילוב אפוקסי - שולחנות אפוקסי, מזוזות מעץ זית ואפוקסי, ואומנות בעץ. כל עבודה ייחודית ובהזמנה אישית.">
-    <meta name="keywords"
-        content="עבודות עץ, אפוקסי, שולחנות אפוקסי, מזוזות, מזוזות עץ זית, resin art, epoxy wood, אומנות בעץ, עבודות יד בעץ, מזוזה אפוקסי, עץ ואפוקסי, תום, גלריה">
-    <meta name="author" content="Tom Art Studio">
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="Hebrew">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://dingalin.github.io/tomart/">
-    <meta property="og:title" content="Tom Art Studio - עבודות עץ ואפוקסי | שולחנות ומזוזות">
-    <meta property="og:description"
-        content="צפו בגלריה המלאה של עבודות עץ בשילוב אפוקסי - שולחנות, מזוזות מעץ זית ואומנות ייחודית">
-    <meta property="og:image" content="https://dingalin.github.io/tomart/logo.png">
-    <meta property="og:locale" content="he_IL">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="Tom Art Studio - עבודות עץ, אפוקסי ומזוזות">
-    <meta property="twitter:description" content="שולחנות אפוקסי, מזוזות מעץ זית ועבודות עץ ייחודיות">
-    <meta property="twitter:image" content="https://dingalin.github.io/tomart/logo.png">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="logo.png">
-
-    <!-- PWA / Mobile App -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="logo.png">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+        content="סטודיו לאומנות בעץ ואפוקסי. שולחנות נהר, מזוזות מעוצבות, שעונים ויצירות אומנות ייחודיות בעבודת יד. עיצוב אישי בהזמנה.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
-    <div class="app-container">
-        <header class="main-header">
-            <img src="logo.png" alt="Tom Art Studio - עבודות עץ, אפוקסי ומזוזות" class="logo-img">
-            <button id="admin-login-btn" class="icon-btn" aria-label="כניסת מנהל">
-                <i class="fa-solid fa-user-lock"></i>
-            </button>
-        </header>
-
-        <!-- Folder Filters -->
-        <div id="folder-filters" class="folder-filters">
-            <!-- Folder buttons will be injected here by JS -->
+    <header>
+        <div id="admin-login-container" class="header-admin">
+            <button id="admin-login-btn" aria-label="כניסת מנהל"><i class="fa-solid fa-user-lock"></i></button>
         </div>
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="logo.png" alt="Tom Art Studio Logo" class="logo-img">
+            </div>
+            <h1>Tom Art Studio</h1>
+            <p class="subtitle">אומנות בעץ ואפוקסי</p>
+        </div>
+    </header>
 
-        <main id="gallery-grid" class="gallery-grid">
-            <!-- Images will be injected here by JS -->
-        </main>
-
-        <!-- Admin Controls (Hidden by default) -->
+    <main>
         <div id="admin-controls" class="admin-controls hidden">
-            <button id="manage-folders-btn" class="fab-btn fab-btn-secondary" aria-label="ניהול תיקיות">
-                <i class="fa-solid fa-folder"></i>
-            </button>
-            <button id="add-image-btn" class="fab-btn" aria-label="הוסף תמונה חדשה">
-                <i class="fa-solid fa-plus"></i>
-            </button>
+            <button id="add-image-btn" class="primary-btn"><i class="fa-solid fa-plus"></i> הוסף יצירה חדשה</button>
+            <button id="manage-folders-btn" class="secondary-btn"><i class="fa-solid fa-folder"></i> ניהול
+                תיקיות</button>
         </div>
-    </div>
 
-    <!-- Login Modal -->
+        <div id="folder-filters" class="folder-filters">
+            <!-- Folder buttons will be injected here -->
+        </div>
+
+        <div id="gallery-grid" class="gallery-grid">
+            <!-- Images will be loaded here -->
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Tom Art Studio. כל הזכויות שמורות.</p>
+        <div class="social-links">
+            <a href="https://www.instagram.com/tom_art_studio" target="_blank" aria-label="Instagram"><i
+                    class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.facebook.com/profile.php?id=100088292465836" target="_blank" aria-label="Facebook"><i
+                    class="fa-brands fa-facebook"></i></a>
+            <a href="https://wa.me/972547896115" target="_blank" aria-label="WhatsApp"><i
+                    class="fa-brands fa-whatsapp"></i></a>
+        </div>
+    </footer>
+
+    <!-- Modals -->
     <div id="login-modal" class="modal hidden" role="dialog" aria-labelledby="login-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
             <h2 id="login-title">כניסת מנהל</h2>
-            <input type="password" id="password-input" placeholder="הכנס סיסמה" aria-label="סיסמה">
+            <input type="password" id="password-input" placeholder="סיסמה" aria-label="סיסמה">
             <button id="login-submit-btn" class="primary-btn">התחבר</button>
             <p id="login-error" class="error-msg hidden">סיסמה שגויה</p>
         </div>
     </div>
 
-    <!-- Add/Edit Image Modal -->
     <div id="image-modal" class="modal hidden" role="dialog" aria-labelledby="modal-title">
-        <div class="modal-content glass-panel">
+        <div class="modal-content glass-panel wide-modal">
             <span class="close-modal">&times;</span>
-            <h2 id="modal-title">הוספת תמונה</h2>
+            <h2 id="modal-title">הוספת/עריכת תמונה</h2>
 
-            <input type="text" id="title-input" placeholder="מספר יצירה (לדוגמה: 5)" aria-label="מספר יצירה">
-            <input type="number" id="price-input" placeholder="מחיר (בשקלים)" aria-label="מחיר">
+            <div class="image-editor-container">
+                <div class="editor-controls">
+                    <button id="editor-prev-btn" class="editor-nav-btn" aria-label="תמונה קודמת"><i
+                            class="fa-solid fa-chevron-right"></i></button>
 
-            <select id="folder-select" class="folder-select" aria-label="בחר תיקייה">
-                <option value="">ללא תיקייה</option>
-                <!-- JavaScript will populate folders -->
-            </select>
+                    <div class="editor-image-display">
+                        <div id="editor-current-image">
+                            <!-- Current image shown here -->
+                            <div class="placeholder-text">אין תמונות. לחץ על "הוסף תמונות" כדי להתחיל.</div>
+                        </div>
+                    </div>
 
-            <div class="file-upload-container">
-                <label for="image-upload" class="file-upload-label">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>בחר תמונה</span>
-                </label>
-                <input type="file" id="image-upload" accept="image/*" aria-label="העלה תמונה">
-                <div id="image-preview-container" class="hidden">
-                    <img id="image-preview" src="" alt="תצוגה מקדימה של התמונה">
+                    <button id="editor-next-btn" class="editor-nav-btn" aria-label="תמונה הבאה"><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                </div>
+
+                <div class="editor-details">
+                    <div class="editor-counter" id="editor-counter">0 / 0</div>
+
+                    <div class="file-upload-section">
+                        <label for="image-upload" class="file-upload-label-small">
+                            <i class="fa-solid fa-plus"></i> הוסף תמונות
+                        </label>
+                        <input type="file" id="image-upload" accept="image/*" multiple hidden>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image-specific-description">תיאור לתמונה זו:</label>
+                        <textarea id="image-specific-description"
+                            placeholder="תיאור ספציפי לתמונה זו (אופציונלי)"></textarea>
+                    </div>
+
+                    <div class="editor-actions">
+                        <button id="delete-current-image-btn" class="danger-btn-small" disabled>
+                            <i class="fa-solid fa-trash"></i> מחק תמונה זו
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <button id="save-image-btn" class="primary-btn">שמור</button>
-            <button id="delete-image-btn" class="danger-btn hidden">מחק תמונה</button>
+            <div class="form-group">
+                <input type="text" id="title-input" placeholder="כותרת היצירה" aria-label="כותרת היצירה">
+            </div>
+            <div class="form-group">
+                <input type="number" id="price-input" placeholder="מחיר (בשקלים)" aria-label="מחיר">
+            </div>
+            <div class="form-group">
+                <textarea id="description-input" placeholder="תיאור כללי ליצירה" aria-label="תיאור כללי"></textarea>
+            </div>
+            <div class="form-group">
+                <select id="folder-select" aria-label="בחר תיקייה">
+                    <option value="">ללא תיקייה</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button id="save-image-btn" class="primary-btn">שמור</button>
+                <button id="delete-image-btn" class="danger-btn hidden">מחק יצירה כולה</button>
+            </div>
         </div>
     </div>
 
-    <!-- Folder Management Modal -->
-    <div id="folder-modal" class="modal hidden" role="dialog" aria-labelledby="folder-modal-title">
+    <div id="folder-modal" class="modal hidden" role="dialog" aria-labelledby="folder-title">
         <div class="modal-content glass-panel">
             <span class="close-modal">&times;</span>
-            <h2 id="folder-modal-title">ניהול תיקיות</h2>
-
-            <div class="folder-list" id="folder-list">
-                <!-- Folder list will be injected here by JS -->
+            <h2 id="folder-title">ניהול תיקיות</h2>
+            <div id="folder-list" class="folder-list">
+                <!-- Folders loaded here -->
             </div>
 
             <div class="add-folder-section">
@@ -154,10 +167,29 @@
     <!-- Lightbox Modal -->
     <div id="lightbox-modal" class="modal hidden lightbox-modal" role="dialog" aria-label="תצוגת תמונה מלאה">
         <span class="close-modal lightbox-close" aria-label="סגור">&times;</span>
-        <img id="lightbox-image" src="" alt="תמונה בגודל מלא">
+
+        <button id="lightbox-prev" class="lightbox-nav prev-btn" aria-label="הקודם">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <div class="lightbox-content">
+            <img id="lightbox-image" src="" alt="תמונה בגודל מלא">
+            <div id="lightbox-counter" class="lightbox-counter"></div>
+            <div id="lightbox-description" class="lightbox-description"></div>
+        </div>
+
+        <button id="lightbox-next" class="lightbox-nav next-btn" aria-label="הבא">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+    </div>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script src="script.js"></script>
 </body>
 
 </html>
