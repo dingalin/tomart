@@ -735,11 +735,6 @@ textarea {
     transition: transform 0.3s, border-color 0.3s;
 }
 
-.gradient-swatch:hover {
-    transform: scale(1.1);
-    border-color: var(--accent-color);
-}
-
 .gradient-swatch.selected {
     border-color: var(--accent-color);
     box-shadow: 0 0 10px var(--accent-color);
@@ -748,31 +743,62 @@ textarea {
 
 /* Gradient Presets */
 .bg-gradient-default {
+    background-color: #0f172a;
     background-image:
         radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.05) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(15, 23, 42, 0) 0px, transparent 50%);
-    background-color: #0f172a;
 }
 
 .bg-gradient-1 {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    background-image: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 60%);
+    /* Luxury Gold */
+    background: linear-gradient(135deg, #1c1917 0%, #0f172a 100%);
+    position: relative;
+}
+
+.bg-gradient-1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 .bg-gradient-2 {
-    background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+    /* Deep Forest */
+    background: linear-gradient(to bottom, #022c22, #064e3b, #065f46);
 }
 
 .bg-gradient-3 {
-    background: linear-gradient(to right, #232526, #414345);
+    /* Purple Night */
+    background: linear-gradient(to right, #2e1065, #4c1d95, #581c87);
 }
 
 .bg-gradient-4 {
-    background: linear-gradient(to top, #1a2980, #26d0ce);
-    /* Sunset/Ocean vibe */
-    background-image: linear-gradient(to top, #0f172a 0%, #1e293b 100%);
-    /* Override for subtle dark */
-    background: radial-gradient(circle at top right, #4f46e5 0%, #0f172a 70%);
+    /* Sunset */
+    background: linear-gradient(to top, #4a044e, #b91c1c, #f59e0b);
+}
+
+.bg-gradient-5 {
+    /* Deep Wood */
+    background: linear-gradient(135deg, #3e2723 0%, #1a0f0a 100%);
+}
+
+.bg-gradient-6 {
+    /* Epoxy River */
+    background: linear-gradient(to bottom right, #0f172a, #083344, #0e7490);
+}
+
+.bg-gradient-7 {
+    /* Ancient Forest */
+    background: linear-gradient(to bottom, #052e16, #064e3b, #022c22);
+}
+
+.bg-gradient-8 {
+    /* Black Marble */
+    background: linear-gradient(135deg, #000000 0%, #1c1c1c 100%);
 }
 
 #bg-preview-container {
@@ -856,6 +882,7 @@ footer {
         left: 10px;
     }
 }
+
 /* Dark Text Mode */
 body.text-dark {
     --text-primary: #0f172a;
@@ -911,3 +938,7 @@ body.text-dark #admin-login-btn {
     mix-blend-mode: normal;
 }
 
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
