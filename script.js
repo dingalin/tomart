@@ -758,6 +758,41 @@ function navigateLightbox(direction) {
     updateLightboxContent();
 }
 
+// Share Functionality
+const lightboxShareBtn = document.getElementById('lightbox-share');
+if (lightboxShareBtn) {
+    lightboxShareBtn.addEventListener('click', handleShare);
+}
+
+async function handleShare() {
+    const item = allImages[currentLightboxIndex];
+    if (!item) return;
+
+    const shareData = {
+        title: 'Tom Art Studio',
+        text: `Check out this artwork: ${item.title || 'Artwork'}`,
+        url: window.location.href // Ideally deep link, but current page is fallback
+    };
+
+    // Try to share the image file if possible
+    if (navigator.canShare && navigator.canShare(shareData)) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.log('Error sharing:', err);
+        }
+    } else {
+        // Fallback: Copy URL or just alert
+        // For now, just try to copy the image URL to clipboard
+        try {
+            await navigator.clipboard.writeText(item.src || item.images[0].src);
+            alert('קישור לתמונה הועתק ללוח!');
+        } catch (err) {
+            alert('לא ניתן לשתף בדפדפן זה.');
+        }
+    }
+}
+
 // --- Utilities ---
 
 function openModal(modal) {
