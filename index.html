@@ -11,7 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -33,6 +35,9 @@
             <button id="add-image-btn" class="primary-btn"><i class="fa-solid fa-plus"></i> הוסף יצירה חדשה</button>
             <button id="manage-folders-btn" class="secondary-btn"><i class="fa-solid fa-folder"></i> ניהול
                 תיקיות</button>
+            <button id="change-bg-btn" class="secondary-btn"><i class="fa-solid fa-palette"></i> שנה רקע</button>
+            <button id="admin-logout-btn" class="danger-btn"><i class="fa-solid fa-right-from-bracket"></i>
+                יציאה</button>
         </div>
 
         <div id="folder-filters" class="folder-filters">
@@ -146,6 +151,57 @@
                 <button id="add-folder-btn" class="primary-btn">
                     <i class="fa-solid fa-plus"></i> הוסף תיקייה
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="background-modal" class="modal hidden" role="dialog" aria-labelledby="bg-modal-title">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2 id="bg-modal-title">עיצוב רקע האתר</h2>
+
+            <div class="bg-section">
+                <h3>בחר רקע מוכן</h3>
+                <div class="gradient-grid">
+                    <div class="gradient-swatch bg-gradient-default" data-bg="default" title="ברירת מחדל"></div>
+                    <div class="gradient-swatch bg-gradient-1" data-bg="bg-gradient-1" title="זהב יוקרתי"></div>
+                    <div class="gradient-swatch bg-gradient-2" data-bg="bg-gradient-2" title="יער עמוק"></div>
+                    <div class="gradient-swatch bg-gradient-3" data-bg="bg-gradient-3" title="לילה סגול"></div>
+                    <div class="gradient-swatch bg-gradient-4" data-bg="bg-gradient-4" title="שקיעה"></div>
+                </div>
+            </div>
+
+            <div class="bg-section">
+                <h3>או העלה תמונה אישית</h3>
+                <div class="file-upload-section">
+                    <label for="bg-image-upload" class="file-upload-label-small">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> בחר תמונה
+                    </label>
+                    <input type="file" id="bg-image-upload" accept="image/*" hidden>
+                </div>
+                <div id="bg-preview-container" class="hidden">
+                    <p>תצוגה מקדימה:</p>
+                    <img id="bg-preview-img" src="" alt="Background Preview">
+                </div>
+            </div>
+
+            <div class="bg-section">
+                <h3>צבע טקסט</h3>
+                <div class="text-color-toggle" style="display: flex; gap: 15px; color: var(--text-secondary);">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="text-color" value="light" checked>
+                        בהיר (ברירת מחדל)
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" name="text-color" value="dark">
+                        כהה (לרקעים בהירים)
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="save-bg-btn" class="primary-btn">שמור שינויים</button>
+                <button id="reset-bg-btn" class="danger-btn">אפס לברירת מחדל</button>
             </div>
         </div>
     </div>

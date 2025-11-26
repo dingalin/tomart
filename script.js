@@ -16,352 +16,537 @@ const db = firebase.database();
 const imagesRef = db.ref('images');
 const foldersRef = db.ref('folders');
 
-// State
-let images = [];
-let folders = [];
-let isAdmin = false;
-let editingId = null;
-let currentWhatsAppItem = null;
-let currentFolder = 'all'; // 'all' or folder ID
-let currentEditImages = []; // Array of objects: { type: 'file'|'url', data: File|String, description: String }
-let currentEditIndex = 0;
-let currentLightboxImages = []; // Array of objects: { src: String, description: String }
-let currentLightboxIndex = 0;
-
 // DOM Elements
 const galleryGrid = document.getElementById('gallery-grid');
-const adminLoginBtn = document.getElementById('admin-login-btn');
 const adminControls = document.getElementById('admin-controls');
-const loginModal = document.getElementById('login-modal');
+const addImageBtn = document.getElementById('add-image-btn');
+const manageFoldersBtn = document.getElementById('manage-folders-btn');
 const imageModal = document.getElementById('image-modal');
-const whatsappModal = document.getElementById('whatsapp-modal');
 const folderModal = document.getElementById('folder-modal');
-const closeModals = document.querySelectorAll('.close-modal');
+const loginModal = document.getElementById('login-modal');
+const whatsappModal = document.getElementById('whatsapp-modal');
+const closeModalBtns = document.querySelectorAll('.close-modal');
+const adminLoginBtn = document.getElementById('admin-login-btn');
+const adminLogoutBtn = document.getElementById('admin-logout-btn');
 const loginSubmitBtn = document.getElementById('login-submit-btn');
 const passwordInput = document.getElementById('password-input');
 const loginError = document.getElementById('login-error');
-const addImageBtn = document.getElementById('add-image-btn');
-const saveImageBtn = document.getElementById('save-image-btn');
-const deleteImageBtn = document.getElementById('delete-image-btn');
-const imageUploadInput = document.getElementById('image-upload');
-const priceInput = document.getElementById('price-input');
-const titleInput = document.getElementById('title-input');
-const descriptionInput = document.getElementById('description-input');
-const folderSelect = document.getElementById('folder-select');
-const modalTitle = document.getElementById('modal-title');
-const whatsappYesBtn = document.getElementById('whatsapp-yes-btn');
-const whatsappNoBtn = document.getElementById('whatsapp-no-btn');
-const lightboxModal = document.getElementById('lightbox-modal');
-const lightboxImage = document.getElementById('lightbox-image');
-const lightboxPrevBtn = document.getElementById('lightbox-prev');
-const lightboxNextBtn = document.getElementById('lightbox-next');
-const lightboxCounter = document.getElementById('lightbox-counter');
-const lightboxDescription = document.getElementById('lightbox-description');
 const folderFilters = document.getElementById('folder-filters');
-const manageFoldersBtn = document.getElementById('manage-folders-btn');
-const folderList = document.getElementById('folder-list');
-const newFolderInput = document.getElementById('new-folder-input');
-const addFolderBtn = document.getElementById('add-folder-btn');
 
-// Editor DOM Elements
+// Image Editor Elements
+const imageUpload = document.getElementById('image-upload');
+const editorCurrentImage = document.getElementById('editor-current-image');
 const editorPrevBtn = document.getElementById('editor-prev-btn');
 const editorNextBtn = document.getElementById('editor-next-btn');
-const editorCurrentImage = document.getElementById('editor-current-image');
 const editorCounter = document.getElementById('editor-counter');
 const imageSpecificDescription = document.getElementById('image-specific-description');
 const deleteCurrentImageBtn = document.getElementById('delete-current-image-btn');
 
+// Form Elements
+const titleInput = document.getElementById('title-input');
+const priceInput = document.getElementById('price-input');
+const descriptionInput = document.getElementById('description-input');
+const folderSelect = document.getElementById('folder-select');
+const saveImageBtn = document.getElementById('save-image-btn');
+const deleteImageBtn = document.getElementById('delete-image-btn');
 
-// Initialize Data Listeners
-imagesRef.on('value', (snapshot) => {
-    const data = snapshot.val();
-    images = [];
-    if (data) {
-        Object.keys(data).forEach(key => {
-            images.push({
-                id: key,
-                ...data[key]
-            });
+// Folder Management Elements
+const folderList = document.getElementById('folder-list');
+const newFolderInput = document.getElementById('new-folder-input');
+const addFolderBtn = document.getElementById('add-folder-btn');
+
+// WhatsApp Elements
+const whatsappYesBtn = document.getElementById('whatsapp-yes-btn');
+const whatsappNoBtn = document.getElementById('whatsapp-no-btn');
+
+// Lightbox Elements
+const lightboxModal = document.getElementById('lightbox-modal');
+const lightboxImage = document.getElementById('lightbox-image');
+const lightboxCounter = document.getElementById('lightbox-counter');
+const lightboxDescription = document.getElementById('lightbox-description');
+const lightboxPrev = document.getElementById('lightbox-prev');
+const lightboxNext = document.getElementById('lightbox-next');
+
+// Background Settings Elements
+const changeBgBtn = document.getElementById('change-bg-btn');
+const backgroundModal = document.getElementById('background-modal');
+const gradientSwatches = document.querySelectorAll('.gradient-swatch');
+const bgImageUpload = document.getElementById('bg-image-upload');
+const bgPreviewContainer = document.getElementById('bg-preview-container');
+const bgPreviewImg = document.getElementById('bg-preview-img');
+const saveBgBtn = document.getElementById('save-bg-btn');
+const resetBgBtn = document.getElementById('reset-bg-btn');
+const textColorRadios = document.getElementsByName('text-color');
+
+// State
+let isAdmin = false;
+let editingId = null;
+let currentWhatsAppItem = null;
+let currentEditImages = []; // Array of {data: base64, description: string, type: 'file'|'url'}
+let currentEditIndex = 0;
+let folders = {};
+let allImages = []; // Store all images for lightbox navigation
+let currentLightboxIndex = 0;
+let currentBgSettings = {
+    type: 'default', // 'default', 'gradient', 'image'
+    value: 'bg-gradient-default', // class name or base64 string
+    textColor: 'light' // 'light' or 'dark'
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadFolders();
+    loadImages();
+    setupEventListeners();
+    checkAdminStatus();
+    initBackgroundSettings();
+});
+
+function setupEventListeners() {
+    // Admin Login
+    adminLoginBtn.addEventListener('click', () => openModal(loginModal));
+    loginSubmitBtn.addEventListener('click', handleLogin);
+    if (adminLogoutBtn) {
+        adminLogoutBtn.addEventListener('click', handleLogout);
+    }
+
+    // Modals
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal');
+            closeModal(modal);
         });
-        images.reverse();
-    }
-    renderGallery();
-    renderFolderFilters();
-}, (error) => {
-    console.error('Firebase: Error reading images:', error);
-    alert('שגיאה בטעינת הנתונים: ' + error.message);
-});
-
-foldersRef.on('value', (snapshot) => {
-    const data = snapshot.val();
-    folders = [];
-    if (data) {
-        Object.keys(data).forEach(key => {
-            folders.push({
-                id: key,
-                ...data[key]
-            });
-        });
-        // Sort by order
-        folders.sort((a, b) => (a.order || 0) - (b.order || 0));
-    }
-    renderFolderFilters();
-    populateFolderSelect();
-    renderFolderList();
-});
-
-// Event Listeners
-adminLoginBtn.addEventListener('click', () => {
-    if (isAdmin) {
-        isAdmin = false;
-        adminControls.classList.add('hidden');
-        adminLoginBtn.innerHTML = '<i class="fa-solid fa-user-lock"></i>';
-        renderGallery();
-    } else {
-        openModal(loginModal);
-    }
-});
-
-loginSubmitBtn.addEventListener('click', checkPassword);
-passwordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') checkPassword();
-});
-
-addImageBtn.addEventListener('click', () => {
-    openImageModal();
-});
-
-saveImageBtn.addEventListener('click', saveImage);
-deleteImageBtn.addEventListener('click', deleteImage);
-
-imageUploadInput.addEventListener('change', handleImageSelect);
-
-closeModals.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent click from reaching elements behind modal
-        const modal = e.target.closest('.modal');
-        closeModal(modal);
     });
-});
 
-window.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal')) {
-        closeModal(e.target);
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            closeModal(e.target);
+        }
+    });
+
+    // Image Management
+    addImageBtn.addEventListener('click', () => openImageModal());
+    saveImageBtn.addEventListener('click', saveImage);
+    deleteImageBtn.addEventListener('click', deleteImage);
+    imageUpload.addEventListener('change', handleImageSelect);
+
+    // Image Editor Navigation
+    editorPrevBtn.addEventListener('click', () => navigateEditor(-1));
+    editorNextBtn.addEventListener('click', () => navigateEditor(1));
+    imageSpecificDescription.addEventListener('input', updateSpecificDescription);
+    deleteCurrentImageBtn.addEventListener('click', deleteCurrentEditorImage);
+
+    // Folder Management
+    manageFoldersBtn.addEventListener('click', () => openModal(folderModal));
+    addFolderBtn.addEventListener('click', addFolder);
+
+    // WhatsApp
+    whatsappYesBtn.addEventListener('click', sendWhatsApp);
+    whatsappNoBtn.addEventListener('click', () => closeModal(whatsappModal));
+
+    // Lightbox Navigation
+    lightboxPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateLightbox(-1);
+    });
+    lightboxNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateLightbox(1);
+    });
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+        if (!lightboxModal.classList.contains('hidden')) {
+            if (e.key === 'ArrowRight') navigateLightbox(-1); // RTL: Right is Prev
+            if (e.key === 'ArrowLeft') navigateLightbox(1);   // RTL: Left is Next
+            if (e.key === 'Escape') closeModal(lightboxModal);
+        }
+    });
+}
+
+// Background Settings Logic
+function initBackgroundSettings() {
+    loadBackgroundSettings();
+
+    // Event Listeners
+    if (changeBgBtn) {
+        changeBgBtn.addEventListener('click', () => {
+            openModal(backgroundModal);
+            updateBgModalUI();
+        });
     }
-});
 
-whatsappYesBtn.addEventListener('click', sendWhatsApp);
-whatsappNoBtn.addEventListener('click', () => closeModal(whatsappModal));
+    gradientSwatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            gradientSwatches.forEach(s => s.classList.remove('selected'));
+            swatch.classList.add('selected');
 
-manageFoldersBtn.addEventListener('click', () => {
-    openModal(folderModal);
-});
+            const bgClass = swatch.dataset.bg;
+            if (bgClass === 'default') {
+                previewBackground('default', 'bg-gradient-default');
+            } else {
+                previewBackground('gradient', bgClass);
+            }
 
-addFolderBtn.addEventListener('click', addFolder);
+            bgPreviewContainer.classList.add('hidden');
+            bgImageUpload.value = '';
+        });
+    });
 
-lightboxPrevBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    prevLightboxImage();
-});
-
-lightboxNextBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    nextLightboxImage();
-});
-
-// Editor Event Listeners
-editorPrevBtn.addEventListener('click', () => navigateEditor(-1));
-editorNextBtn.addEventListener('click', () => navigateEditor(1));
-deleteCurrentImageBtn.addEventListener('click', deleteCurrentEditorImage);
-imageSpecificDescription.addEventListener('input', (e) => {
-    if (currentEditImages[currentEditIndex]) {
-        currentEditImages[currentEditIndex].description = e.target.value;
+    if (bgImageUpload) {
+        bgImageUpload.addEventListener('change', handleBgImageUpload);
     }
-});
 
+    if (saveBgBtn) {
+        saveBgBtn.addEventListener('click', saveBackgroundSettings);
+    }
 
-// Functions
-function checkPassword() {
+    if (resetBgBtn) {
+        resetBgBtn.addEventListener('click', () => {
+            if (confirm('האם אתה בטוח שברצונך לאפס את הרקע לברירת המחדל?')) {
+                currentBgSettings = { type: 'default', value: 'bg-gradient-default', textColor: 'light' };
+                saveBackgroundSettings();
+            }
+        });
+    }
+}
+
+function updateBgModalUI() {
+    gradientSwatches.forEach(s => s.classList.remove('selected'));
+    bgPreviewContainer.classList.add('hidden');
+
+    if (currentBgSettings.type === 'gradient' || currentBgSettings.type === 'default') {
+        const activeSwatch = document.querySelector(`.gradient-swatch[data-bg="${currentBgSettings.value === 'bg-gradient-default' ? 'default' : currentBgSettings.value}"]`);
+        if (activeSwatch) activeSwatch.classList.add('selected');
+    } else if (currentBgSettings.type === 'image') {
+        bgPreviewContainer.classList.remove('hidden');
+        bgPreviewImg.src = currentBgSettings.value;
+    }
+
+    // Update Text Color Radios
+    if (textColorRadios) {
+        for (const radio of textColorRadios) {
+            radio.checked = (radio.value === (currentBgSettings.textColor || 'light'));
+        }
+    }
+}
+
+function previewBackground(type, value) {
+    document.body.className = '';
+    document.body.style.backgroundImage = '';
+
+    // Re-apply text color class if needed (though preview usually just shows bg)
+    // We should probably keep the current text color during preview
+    const isDark = document.querySelector('input[name="text-color"]:checked')?.value === 'dark';
+    if (isDark) document.body.classList.add('text-dark');
+
+    if (type === 'gradient' || type === 'default') {
+        document.body.classList.add(value);
+    } else if (type === 'image') {
+        document.body.style.backgroundImage = `url('${value}')`;
+    }
+}
+
+async function handleBgImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        const compressedBase64 = await compressImage(file);
+
+        gradientSwatches.forEach(s => s.classList.remove('selected'));
+        bgPreviewContainer.classList.remove('hidden');
+        bgPreviewImg.src = compressedBase64;
+
+        previewBackground('image', compressedBase64);
+    } catch (error) {
+        alert('שגיאה בטעינת התמונה: ' + error.message);
+    }
+}
+
+function loadBackgroundSettings() {
+    const bgRef = db.ref('settings/background');
+    bgRef.on('value', (snapshot) => {
+        const settings = snapshot.val();
+        if (settings) {
+            currentBgSettings = settings;
+            applyBackground(settings);
+        } else {
+            applyBackground({ type: 'default', value: 'bg-gradient-default', textColor: 'light' });
+        }
+    });
+}
+
+function applyBackground(settings) {
+    document.body.className = '';
+    document.body.style.backgroundImage = '';
+
+    // Apply Text Color
+    if (settings.textColor === 'dark') {
+        document.body.classList.add('text-dark');
+    } else {
+        document.body.classList.remove('text-dark');
+    }
+
+    if (settings.type === 'gradient' || settings.type === 'default') {
+        document.body.classList.add(settings.value);
+    } else if (settings.type === 'image') {
+        document.body.style.backgroundImage = `url('${settings.value}')`;
+    }
+}
+
+async function saveBackgroundSettings() {
+    saveBgBtn.textContent = 'שומר...';
+    saveBgBtn.disabled = true;
+
+    try {
+        let newSettings = {
+            type: 'default',
+            value: 'bg-gradient-default',
+            textColor: 'light'
+        };
+
+        const selectedSwatch = document.querySelector('.gradient-swatch.selected');
+        if (selectedSwatch) {
+            const bgClass = selectedSwatch.dataset.bg;
+            if (bgClass !== 'default') {
+                newSettings.type = 'gradient';
+                newSettings.value = bgClass;
+            }
+        } else if (!bgPreviewContainer.classList.contains('hidden') && bgPreviewImg.src) {
+            newSettings.type = 'image';
+            newSettings.value = bgPreviewImg.src;
+        }
+
+        // Get Text Color
+        const selectedTextColor = document.querySelector('input[name="text-color"]:checked')?.value || 'light';
+        newSettings.textColor = selectedTextColor;
+
+        await db.ref('settings/background').set(newSettings);
+        currentBgSettings = newSettings;
+        closeModal(backgroundModal);
+        alert('הרקע עודכן בהצלחה!');
+    } catch (error) {
+        alert('שגיאה בשמירה: ' + error.message);
+    } finally {
+        saveBgBtn.textContent = 'שמור שינויים';
+        saveBgBtn.disabled = false;
+    }
+}
+
+// --- Existing Functions ---
+
+function checkAdminStatus() {
+    const sessionAdmin = sessionStorage.getItem('isAdmin');
+    if (sessionAdmin === 'true') {
+        enableAdminMode();
+    }
+}
+
+function handleLogin() {
     const password = passwordInput.value;
     if (password === 'loofisheli1') {
-        isAdmin = true;
-        adminControls.classList.remove('hidden');
-        adminLoginBtn.innerHTML = '<i class="fa-solid fa-unlock"></i>';
+        sessionStorage.setItem('isAdmin', 'true');
+        enableAdminMode();
         closeModal(loginModal);
         passwordInput.value = '';
         loginError.classList.add('hidden');
-        renderGallery();
     } else {
         loginError.classList.remove('hidden');
     }
 }
 
-function openModal(modal) {
-    modal.classList.remove('hidden');
+function handleLogout() {
+    sessionStorage.removeItem('isAdmin');
+    isAdmin = false;
+    location.reload(); // Reload to reset state completely
 }
 
-function closeModal(modal) {
-    modal.classList.add('hidden');
-    if (modal === imageModal) {
-        currentEditImages = [];
-        currentEditIndex = 0;
-    }
+function enableAdminMode() {
+    isAdmin = true;
+    adminControls.classList.remove('hidden');
+    adminLoginBtn.style.display = 'none';
+    renderGallery(); // Re-render to show edit buttons
 }
 
-function renderGallery() {
-    galleryGrid.innerHTML = '';
-
-    const filteredImages = currentFolder === 'all'
-        ? images
-        : images.filter(img => img.folderId === currentFolder);
-
-    filteredImages.forEach(img => {
-        const item = document.createElement('div');
-        item.className = 'gallery-item';
-
-        // Handle multiple images: use first image as thumbnail
-        // Check if images is array of objects or strings (legacy)
-        let imgSrc = '';
-        if (img.images && img.images.length > 0) {
-            const firstImg = img.images[0];
-            imgSrc = typeof firstImg === 'object' ? firstImg.src : firstImg;
-        } else {
-            imgSrc = img.src;
-        }
-
-        item.innerHTML = `
-            <img src="${imgSrc}" alt="${img.title || 'יצירה'}" loading="lazy" class="gallery-img-trigger">
-            <div class="item-info">
-                <div>
-                    <span class="artwork-title">${img.title || ''}</span>
-                    <span class="price-tag">${img.price ? '₪' + img.price : ''}</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    ${isAdmin ? `<button class="edit-btn" onclick="window.editImage('${img.id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
-                    <button class="whatsapp-icon-btn" onclick="window.confirmWhatsApp('${img.id}')">
-                        <i class="fa-brands fa-whatsapp"></i>
-                    </button>
-                    <button class="magnify-btn" onclick="window.openLightbox('${img.id}')">
-                        <i class="fa-solid fa-magnifying-glass-plus"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        // Add click event to image for lightbox
-        const imgEl = item.querySelector('.gallery-img-trigger');
-        imgEl.addEventListener('click', () => window.openLightbox(img.id));
-
-        galleryGrid.appendChild(item);
+function loadFolders() {
+    foldersRef.on('value', (snapshot) => {
+        folders = snapshot.val() || {};
+        renderFolderFilters();
+        renderFolderList(); // For admin modal
+        renderFolderSelect(); // For image modal
     });
 }
 
 function renderFolderFilters() {
-    folderFilters.innerHTML = '';
+    folderFilters.innerHTML = '<button class="folder-filter-btn active" data-id="all">הכל</button>';
 
-    // 'All' button
-    const allBtn = document.createElement('button');
-    allBtn.className = `folder-filter-btn ${currentFolder === 'all' ? 'active' : ''}`;
-    allBtn.innerHTML = `<span class="folder-count">${images.length}</span> הכל`;
-    allBtn.onclick = () => filterByFolder('all');
-    folderFilters.appendChild(allBtn);
-
-    folders.forEach(folder => {
-        const count = images.filter(img => img.folderId === folder.id).length;
+    Object.entries(folders).forEach(([id, folderData]) => {
         const btn = document.createElement('button');
-        btn.className = `folder-filter-btn ${currentFolder === folder.id ? 'active' : ''}`;
-        btn.innerHTML = `<span class="folder-count">${count}</span> ${folder.name}`;
-        btn.onclick = () => filterByFolder(folder.id);
+        btn.className = 'folder-filter-btn';
+
+        // Handle both string (legacy) and object structure
+        const folderName = typeof folderData === 'object' ? folderData.name : folderData;
+
+        btn.textContent = folderName;
+        btn.dataset.id = id;
+        btn.addEventListener('click', () => filterGallery(id));
         folderFilters.appendChild(btn);
     });
+
+    // Add event listener for "All" button
+    folderFilters.querySelector('[data-id="all"]').addEventListener('click', () => filterGallery('all'));
 }
 
-function filterByFolder(folderId) {
-    currentFolder = folderId;
-    renderGallery();
-    renderFolderFilters();
-}
-
-function populateFolderSelect(currentValue = null) {
-    folderSelect.innerHTML = '<option value="">ללא תיקייה</option>';
-    folders.forEach(folder => {
-        const option = document.createElement('option');
-        option.value = folder.id;
-        option.textContent = folder.name;
-        folderSelect.appendChild(option);
+function filterGallery(folderId) {
+    // Update active button
+    document.querySelectorAll('.folder-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === folderId);
     });
 
-    // Restore selection if it still exists
-    if (currentValue) {
-        folderSelect.value = currentValue;
-    }
+    loadImages(folderId);
 }
 
-function openImageModal(id = null) {
+function loadImages(filterFolderId = 'all') {
+    imagesRef.on('value', (snapshot) => {
+        galleryGrid.innerHTML = '';
+        const data = snapshot.val();
+        if (!data) return;
+
+        allImages = []; // Reset for lightbox
+
+        Object.entries(data).forEach(([id, item]) => {
+            if (filterFolderId === 'all' || item.folderId === filterFolderId) {
+                // Handle legacy data structure (single src) vs new (array of images)
+                let mainImageSrc = item.src;
+                if (item.images && item.images.length > 0) {
+                    mainImageSrc = item.images[0].src;
+                }
+
+                if (!mainImageSrc) return; // Skip items without images
+
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                galleryItem.innerHTML = `
+                    <img src="${mainImageSrc}" alt="${item.title || 'יצירה'}" loading="lazy">
+                    <div class="item-info">
+                        <div>
+                            <span class="artwork-title">${item.title || ''}</span>
+                            <span class="price-tag">${item.price ? '₪' + item.price : ''}</span>
+                        </div>
+                        <div style="display: flex;">
+                            <button class="whatsapp-icon-btn" aria-label="שלח הודעה"><i class="fa-brands fa-whatsapp"></i></button>
+                            <button class="magnify-btn" aria-label="הגדל"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                            ${isAdmin ? `<button class="edit-btn" data-id="${id}"><i class="fa-solid fa-pen"></i></button>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // Add to allImages for lightbox
+                allImages.push({
+                    id: id,
+                    ...item,
+                    mainSrc: mainImageSrc
+                });
+
+                // Event Listeners
+                const imgElement = galleryItem.querySelector('img');
+                const magnifyBtn = galleryItem.querySelector('.magnify-btn');
+
+                // Open lightbox on image click or magnify click
+                const openLightboxHandler = () => openLightbox(id);
+                imgElement.addEventListener('click', openLightboxHandler);
+                magnifyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightbox(id);
+                });
+
+                galleryItem.querySelector('.whatsapp-icon-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    confirmWhatsApp(item);
+                });
+
+                if (isAdmin) {
+                    galleryItem.querySelector('.edit-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openImageModal(id, item);
+                    });
+                }
+
+                galleryGrid.appendChild(galleryItem);
+            }
+        });
+    });
+}
+
+function renderGallery() {
+    // Just reload images to apply admin buttons
+    const activeFilter = document.querySelector('.folder-filter-btn.active');
+    loadImages(activeFilter ? activeFilter.dataset.id : 'all');
+}
+
+// --- Image Editor Functions ---
+
+function openImageModal(id = null, item = null) {
     editingId = id;
-    imageUploadInput.value = '';
     currentEditImages = [];
     currentEditIndex = 0;
-    loginError.classList.add('hidden');
 
-    if (id) {
-        const img = images.find(i => i.id === id);
-        modalTitle.textContent = 'עריכת תמונה';
-        priceInput.value = img.price;
-        titleInput.value = img.title || '';
-        descriptionInput.value = img.description || '';
-        folderSelect.value = img.folderId || '';
+    // Reset Form
+    titleInput.value = '';
+    priceInput.value = '';
+    descriptionInput.value = '';
+    folderSelect.value = '';
+    imageUpload.value = '';
+    deleteImageBtn.classList.add('hidden');
 
-        // Load existing images into editor state
-        if (img.images && img.images.length > 0) {
-            img.images.forEach(item => {
-                if (typeof item === 'object') {
-                    currentEditImages.push({ type: 'url', data: item.src, description: item.description || '' });
-                } else {
-                    // Legacy: string url
-                    currentEditImages.push({ type: 'url', data: item, description: '' });
-                }
-            });
-        } else if (img.src) {
-            currentEditImages.push({ type: 'url', data: img.src, description: '' });
-        }
-
+    if (item) {
+        modalTitle.textContent = 'עריכת יצירה';
+        titleInput.value = item.title || '';
+        priceInput.value = item.price || '';
+        descriptionInput.value = item.description || '';
+        folderSelect.value = item.folderId || '';
         deleteImageBtn.classList.remove('hidden');
+
+        // Load existing images
+        if (item.images) {
+            currentEditImages = item.images.map(img => ({
+                data: img.src,
+                description: img.description || '',
+                type: 'url' // Mark as existing URL
+            }));
+        } else if (item.src) {
+            // Legacy support
+            currentEditImages = [{
+                data: item.src,
+                description: '',
+                type: 'url'
+            }];
+        }
     } else {
-        modalTitle.textContent = 'הוספת תמונה';
-        priceInput.value = '';
-        titleInput.value = '';
-        descriptionInput.value = '';
-        folderSelect.value = '';
-        deleteImageBtn.classList.add('hidden');
+        modalTitle.textContent = 'הוספת יצירה חדשה';
     }
 
     renderImageEditor();
     openModal(imageModal);
 }
 
-function handleImageSelect(e) {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-        files.forEach(file => {
-            if (file.size > 10 * 1024 * 1024) {
-                alert(`התמונה ${file.name} גדולה מדי. אנא בחר תמונה קטנה מ-10MB.`);
-                return;
-            }
-            currentEditImages.push({ type: 'file', data: file, description: '' });
+async function handleImageSelect(event) {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+        const base64 = await readFileAsBase64(file);
+        currentEditImages.push({
+            data: base64, // This is the raw file data, will be compressed on save
+            description: '',
+            type: 'file' // Mark as new file
         });
-
-        // If this was the first image added, set index to it
-        if (currentEditImages.length === files.length) {
-            currentEditIndex = 0;
-        } else {
-            // Jump to the first newly added image
-            currentEditIndex = currentEditImages.length - files.length;
-        }
-
-        renderImageEditor();
-        imageUploadInput.value = ''; // Reset input
     }
+
+    // Move to the first new image
+    currentEditIndex = currentEditImages.length - files.length;
+    renderImageEditor();
 }
 
 function renderImageEditor() {
@@ -380,23 +565,15 @@ function renderImageEditor() {
     if (currentEditIndex >= currentEditImages.length) currentEditIndex = currentEditImages.length - 1;
     if (currentEditIndex < 0) currentEditIndex = 0;
 
-    const currentItem = currentEditImages[currentEditIndex];
+    const currentImg = currentEditImages[currentEditIndex];
 
-    editorCurrentImage.innerHTML = '';
-    const img = document.createElement('img');
+    // Display Image
+    // If it's a file type (base64 raw), show it directly. If URL, show URL.
+    editorCurrentImage.innerHTML = `<img src="${currentImg.data}" alt="Preview">`;
 
-    if (currentItem.type === 'file') {
-        const reader = new FileReader();
-        reader.onload = (e) => { img.src = e.target.result; };
-        reader.readAsDataURL(currentItem.data);
-    } else {
-        img.src = currentItem.data;
-    }
-
-    editorCurrentImage.appendChild(img);
-
+    // Update Controls
     editorCounter.textContent = `${currentEditIndex + 1} / ${currentEditImages.length}`;
-    imageSpecificDescription.value = currentItem.description || '';
+    imageSpecificDescription.value = currentImg.description;
     imageSpecificDescription.disabled = false;
     deleteCurrentImageBtn.disabled = false;
 
@@ -405,21 +582,21 @@ function renderImageEditor() {
 }
 
 function navigateEditor(direction) {
-    const newIndex = currentEditIndex + direction;
-    if (newIndex >= 0 && newIndex < currentEditImages.length) {
-        currentEditIndex = newIndex;
-        renderImageEditor();
+    currentEditIndex += direction;
+    renderImageEditor();
+}
+
+function updateSpecificDescription(e) {
+    if (currentEditImages[currentEditIndex]) {
+        currentEditImages[currentEditIndex].description = e.target.value;
     }
 }
 
 function deleteCurrentEditorImage() {
     if (confirm('האם אתה בטוח שברצונך למחוק תמונה זו?')) {
         currentEditImages.splice(currentEditIndex, 1);
-
-        if (currentEditImages.length === 0) {
-            currentEditIndex = 0;
-        } else if (currentEditIndex >= currentEditImages.length) {
-            currentEditIndex = currentEditImages.length - 1;
+        if (currentEditIndex >= currentEditImages.length) {
+            currentEditIndex = Math.max(0, currentEditImages.length - 1);
         }
         renderImageEditor();
     }
@@ -444,7 +621,7 @@ async function saveImage() {
         const processedImages = await Promise.all(currentEditImages.map(async (item) => {
             let src = item.data;
             if (item.type === 'file') {
-                src = await compressImage(item.data);
+                src = await compressImage(item.data); // Compress base64 string
             }
             return {
                 src: src,
@@ -454,7 +631,7 @@ async function saveImage() {
 
         const imageData = {
             images: processedImages,
-            src: processedImages[0].src, // Main thumbnail
+            src: processedImages[0].src, // Main thumbnail for legacy/grid
             price: price,
             title: title,
             description: description,
@@ -479,26 +656,69 @@ async function saveImage() {
 }
 
 function deleteImage() {
-    if (editingId && confirm('האם אתה בטוח שברצונך למחוק את היצירה כולה?')) {
-        const imgRef = db.ref(`images/${editingId}`);
-        imgRef.remove().then(() => {
-            closeModal(imageModal);
-        }).catch(err => alert('שגיאה במחיקה: ' + err.message));
+    if (confirm('האם אתה בטוח שברצונך למחוק את היצירה כולה?')) {
+        db.ref(`images/${editingId}`).remove()
+            .then(() => closeModal(imageModal))
+            .catch(err => alert('שגיאה במחיקה: ' + err.message));
     }
 }
 
-function confirmWhatsApp(id) {
-    currentWhatsAppItem = images.find(i => i.id === id);
-    if (currentWhatsAppItem) {
-        openModal(whatsappModal);
+// --- Folder Management ---
+
+function renderFolderList() {
+    folderList.innerHTML = '';
+    Object.entries(folders).forEach(([id, folderData]) => {
+        const div = document.createElement('div');
+        div.className = 'folder-item';
+        // Handle both string (legacy) and object structure
+        const folderName = typeof folderData === 'object' ? folderData.name : folderData;
+
+        div.innerHTML = `
+            <span>${folderName}</span>
+            <button class="danger-btn-small" onclick="deleteFolder('${id}')"><i class="fa-solid fa-trash"></i></button>
+        `;
+        folderList.appendChild(div);
+    });
+}
+
+function renderFolderSelect() {
+    folderSelect.innerHTML = '<option value="">ללא תיקייה</option>';
+    Object.entries(folders).forEach(([id, folderData]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        // Handle both string (legacy) and object structure
+        const folderName = typeof folderData === 'object' ? folderData.name : folderData;
+        option.textContent = folderName;
+        folderSelect.appendChild(option);
+    });
+}
+
+function addFolder() {
+    const name = newFolderInput.value.trim();
+    if (name) {
+        foldersRef.push(name);
+        newFolderInput.value = '';
     }
+}
+
+window.deleteFolder = function (id) {
+    if (confirm('האם אתה בטוח? התמונות בתיקייה זו לא יימחקו, אך יוסרו מהתיקייה.')) {
+        foldersRef.child(id).remove();
+    }
+};
+
+// --- WhatsApp ---
+
+function confirmWhatsApp(item) {
+    currentWhatsAppItem = item;
+    openModal(whatsappModal);
 }
 
 function sendWhatsApp() {
     if (!currentWhatsAppItem) return;
 
     const phoneNumber = '972547896115';
-    const titleText = currentWhatsAppItem.title || 'מהאתר';
+    const titleText = currentWhatsAppItem.title ? currentWhatsAppItem.title : 'מהאתר';
     const text = `שלום תום אני מעוניין ביצירה ${titleText} בבקשה צור איתי קשר, תודה`;
 
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`;
@@ -506,163 +726,89 @@ function sendWhatsApp() {
     closeModal(whatsappModal);
 }
 
-// Global functions for HTML access
-window.editImage = openImageModal;
-window.confirmWhatsApp = confirmWhatsApp;
-window.openLightbox = openLightbox;
-
+// --- Lightbox ---
 
 function openLightbox(id) {
-    const img = images.find(i => i.id === id);
-    if (img) {
-        // Handle legacy data (array of strings) vs new data (array of objects)
-        if (img.images && img.images.length > 0) {
-            currentLightboxImages = img.images.map(item => {
-                if (typeof item === 'object') {
-                    return item;
-                } else {
-                    return { src: item, description: '' };
-                }
-            });
-        } else {
-            currentLightboxImages = [{ src: img.src, description: '' }];
-        }
+    // Find index in allImages
+    currentLightboxIndex = allImages.findIndex(img => img.id === id);
+    if (currentLightboxIndex === -1) return;
 
-        currentLightboxIndex = 0;
-        updateLightboxImage();
-        openModal(lightboxModal);
-    }
-}
-window.openLightbox = openLightbox;
-
-function updateLightboxImage() {
-    const currentItem = currentLightboxImages[currentLightboxIndex];
-    lightboxImage.src = currentItem.src;
-
-    // Update description: use specific image description if available, otherwise fallback (optional)
-    // Here we only show specific description as requested
-    lightboxDescription.textContent = currentItem.description || '';
-
-    // Update counter
-    if (currentLightboxImages.length > 1) {
-        lightboxCounter.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
-        lightboxPrevBtn.style.display = 'flex';
-        lightboxNextBtn.style.display = 'flex';
-    } else {
-        lightboxCounter.textContent = '';
-        lightboxPrevBtn.style.display = 'none';
-        lightboxNextBtn.style.display = 'none';
-    }
+    updateLightboxContent();
+    lightboxModal.classList.remove('hidden');
 }
 
-function nextLightboxImage() {
-    if (currentLightboxImages.length > 1) {
-        currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
-        updateLightboxImage();
-    }
+function updateLightboxContent() {
+    const item = allImages[currentLightboxIndex];
+
+    // Use high-res image if available (currently just using src)
+    // If item has multiple images, we could implement sub-gallery in lightbox, 
+    // but for now let's show the main image.
+    // TODO: Support multiple images in lightbox if requested.
+    const imgSrc = item.images ? item.images[0].src : item.src;
+
+    lightboxImage.src = imgSrc;
+    lightboxDescription.textContent = item.title || '';
+    lightboxCounter.textContent = `${currentLightboxIndex + 1} / ${allImages.length}`;
 }
 
-function prevLightboxImage() {
-    if (currentLightboxImages.length > 1) {
-        currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
-        updateLightboxImage();
-    }
+function navigateLightbox(direction) {
+    currentLightboxIndex += direction;
+    if (currentLightboxIndex >= allImages.length) currentLightboxIndex = 0;
+    if (currentLightboxIndex < 0) currentLightboxIndex = allImages.length - 1;
+    updateLightboxContent();
 }
 
-function compressImage(file) {
+// --- Utilities ---
+
+function openModal(modal) {
+    modal.classList.remove('hidden');
+}
+
+function closeModal(modal) {
+    modal.classList.add('hidden');
+}
+
+function readFileAsBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
         reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                // Max dimensions
-                const MAX_WIDTH = 1200;
-                const MAX_HEIGHT = 1200;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // Compress to JPEG with 0.8 quality
-                resolve(canvas.toDataURL('image/jpeg', 0.8));
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
     });
 }
 
-// Folder Management
-function renderFolderList() {
-    folderList.innerHTML = '';
-    folders.forEach(folder => {
-        const count = images.filter(img => img.folderId === folder.id).length;
-        const item = document.createElement('div');
-        item.className = 'folder-item';
-        item.innerHTML = `
-            <span class="folder-item-name">${folder.name}</span>
-            <span class="folder-item-count">${count} יצירות</span>
-            <div class="folder-item-actions">
-                <button class="folder-item-btn delete" onclick="window.deleteFolder('${folder.id}')">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
-        `;
-        folderList.appendChild(item);
-    });
-}
-
-function addFolder() {
-    const name = newFolderInput.value.trim();
-    if (name) {
-        const newFolderRef = foldersRef.push();
-        newFolderRef.set({
-            name: name,
-            order: folders.length
-        }).then(() => {
-            newFolderInput.value = '';
-        }).catch(err => alert('שגיאה בהוספת תיקייה: ' + err.message));
-    }
-}
-
-window.deleteFolder = function (id) {
-    if (confirm('האם אתה בטוח שברצונך למחוק תיקייה זו?')) {
-        // Check if folder has images
-        const hasImages = images.some(img => img.folderId === id);
-        if (hasImages) {
-            alert('לא ניתן למחוק תיקייה המכילה יצירות. אנא העבר או מחק את היצירות קודם.');
+function compressImage(base64Str, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+        // If it's a file object (from upload), read it first
+        if (typeof base64Str !== 'string') {
+            readFileAsBase64(base64Str).then(str => {
+                compressImageString(str, maxWidth, quality).then(resolve);
+            });
             return;
         }
-
-        const folderRef = db.ref(`folders/${id}`);
-        folderRef.remove().catch(err => alert('שגיאה במחיקה: ' + err.message));
-    }
+        compressImageString(base64Str, maxWidth, quality).then(resolve);
+    });
 }
 
-// Expose renderImageEditor for testing
-window.renderImageEditor = renderImageEditor;
-window.saveImage = saveImage;
-window.deleteCurrentEditorImage = deleteCurrentEditorImage;
-window.getCurrentEditImages = () => currentEditImages;
-window.setCurrentEditImages = (val) => { currentEditImages = val; };
-window.getCurrentEditIndex = () => currentEditIndex;
-window.setCurrentEditIndex = (val) => { currentEditIndex = val; };
+function compressImageString(base64Str, maxWidth, quality) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+    });
+}
