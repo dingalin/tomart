@@ -22,6 +22,7 @@ const adminControls = document.getElementById('admin-controls');
 const addImageBtn = document.getElementById('add-image-btn');
 const manageFoldersBtn = document.getElementById('manage-folders-btn');
 const imageModal = document.getElementById('image-modal');
+const modalTitle = document.getElementById('modal-title');
 const folderModal = document.getElementById('folder-modal');
 const loginModal = document.getElementById('login-modal');
 const whatsappModal = document.getElementById('whatsapp-modal');
@@ -96,7 +97,7 @@ let currentBgSettings = {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadFolders();
-    loadImages();
+    setupImagesListener();
     setupEventListeners();
     checkAdminStatus();
     initBackgroundSettings();
@@ -407,83 +408,103 @@ function filterGallery(folderId) {
     loadImages(folderId);
 }
 
-function loadImages(filterFolderId = 'all') {
+let imagesData = {}; // Store raw data from Firebase
+let currentFilter = 'all'; // Store current filter
+
+function setupImagesListener() {
     imagesRef.on('value', (snapshot) => {
-        galleryGrid.innerHTML = '';
-        const data = snapshot.val();
-        if (!data) return;
-
-        allImages = []; // Reset for lightbox
-
-        Object.entries(data).forEach(([id, item]) => {
-            if (filterFolderId === 'all' || item.folderId === filterFolderId) {
-                // Handle legacy data structure (single src) vs new (array of images)
-                let mainImageSrc = item.src;
-                if (item.images && item.images.length > 0) {
-                    mainImageSrc = item.images[0].src;
-                }
-
-                if (!mainImageSrc) return; // Skip items without images
-
-                const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item';
-                galleryItem.innerHTML = `
-                    <img src="${mainImageSrc}" alt="${item.title || 'יצירה'}" loading="lazy">
-                    <div class="item-info">
-                        <div>
-                            <span class="artwork-title">${item.title || ''}</span>
-                            <span class="price-tag">${item.price ? '₪' + item.price : ''}</span>
-                        </div>
-                        <div style="display: flex;">
-                            <button class="whatsapp-icon-btn" aria-label="שלח הודעה"><i class="fa-brands fa-whatsapp"></i></button>
-                            <button class="magnify-btn" aria-label="הגדל"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                            ${isAdmin ? `<button class="edit-btn" data-id="${id}"><i class="fa-solid fa-pen"></i></button>` : ''}
-                        </div>
-                    </div>
-                `;
-
-                // Add to allImages for lightbox
-                allImages.push({
-                    id: id,
-                    ...item,
-                    mainSrc: mainImageSrc
-                });
-
-                // Event Listeners
-                const imgElement = galleryItem.querySelector('img');
-                const magnifyBtn = galleryItem.querySelector('.magnify-btn');
-
-                // Open lightbox on image click or magnify click
-                const openLightboxHandler = () => openLightbox(id);
-                imgElement.addEventListener('click', openLightboxHandler);
-                magnifyBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openLightbox(id);
-                });
-
-                galleryItem.querySelector('.whatsapp-icon-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    confirmWhatsApp(item);
-                });
-
-                if (isAdmin) {
-                    galleryItem.querySelector('.edit-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        openImageModal(id, item);
-                    });
-                }
-
-                galleryGrid.appendChild(galleryItem);
-            }
-        });
+        imagesData = snapshot.val() || {};
+        renderGallery();
+    }, (error) => {
+        console.error('Firebase read error:', error);
     });
 }
 
 function renderGallery() {
-    // Just reload images to apply admin buttons
-    const activeFilter = document.querySelector('.folder-filter-btn.active');
-    loadImages(activeFilter ? activeFilter.dataset.id : 'all');
+    galleryGrid.innerHTML = '';
+    allImages = []; // Reset for lightbox
+
+    Object.entries(imagesData).forEach(([id, item]) => {
+        if (currentFilter === 'all' || item.folderId === currentFilter) {
+            // Handle legacy data structure (single src) vs new (array of images)
+            let mainImageSrc = item.src;
+            if (item.images && item.images.length > 0) {
+                mainImageSrc = item.images[0].src;
+            }
+
+            if (!mainImageSrc) return; // Skip items without images
+
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
+            galleryItem.innerHTML = `
+                <img src="${mainImageSrc}" alt="${item.title || 'יצירה'}" loading="lazy">
+                <div class="item-info">
+                    <div>
+                        <span class="artwork-title">${item.title || ''}</span>
+                        <span class="price-tag">${item.price ? '₪' + item.price : ''}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="whatsapp-icon-btn" aria-label="שלח הודעה"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button class="share-btn" aria-label="שתף"><i class="fa-solid fa-share-nodes"></i></button>
+                        <button class="magnify-btn" aria-label="הגדל"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                        ${isAdmin ? `<button class="edit-btn" data-id="${id}"><i class="fa-solid fa-pen"></i></button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Add to allImages for lightbox
+            allImages.push({
+                id: id,
+                ...item,
+                mainSrc: mainImageSrc
+            });
+
+            // Event Listeners
+            const imgElement = galleryItem.querySelector('img');
+            const magnifyBtn = galleryItem.querySelector('.magnify-btn');
+
+            // Open lightbox on image click or magnify click
+            const openLightboxHandler = () => openLightbox(id);
+            imgElement.addEventListener('click', openLightboxHandler);
+            magnifyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLightbox(id);
+            });
+
+            galleryItem.querySelector('.whatsapp-icon-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmWhatsApp(item);
+            });
+
+            galleryItem.querySelector('.share-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleShare(item);
+            });
+
+            if (isAdmin) {
+                galleryItem.querySelector('.edit-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openImageModal(id, item);
+                });
+            }
+
+            galleryGrid.appendChild(galleryItem);
+        }
+    });
 }
+
+function filterGallery(folderId) {
+    currentFilter = folderId;
+
+    // Update active button
+    document.querySelectorAll('.folder-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === folderId);
+    });
+
+    renderGallery();
+}
+
+
 
 // --- Image Editor Functions ---
 
@@ -764,8 +785,8 @@ if (lightboxShareBtn) {
     lightboxShareBtn.addEventListener('click', handleShare);
 }
 
-async function handleShare() {
-    const item = allImages[currentLightboxIndex];
+async function handleShare(itemToShare = null) {
+    const item = itemToShare || allImages[currentLightboxIndex];
     if (!item) return;
 
     const shareData = {

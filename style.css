@@ -182,21 +182,6 @@ h3,
     flex-direction: column;
     margin-bottom: 25px;
     break-inside: avoid;
-    animation: fadeIn 0.6s ease-out forwards;
-    opacity: 0;
-    /* Start hidden for animation */
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .gallery-item:hover {
@@ -240,6 +225,12 @@ h3,
     /* Keep numbers in sans-serif */
 }
 
+.item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .whatsapp-icon-btn {
     background: rgba(37, 211, 102, 0.1);
     color: #25d366;
@@ -253,7 +244,6 @@ h3,
     cursor: pointer;
     transition: all 0.3s;
     font-size: 1.2rem;
-    margin-right: 8px;
 }
 
 .whatsapp-icon-btn:hover {
@@ -264,34 +254,30 @@ h3,
 }
 
 .edit-btn,
-.magnify-btn {
+.magnify-btn,
+.share-btn {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    margin-left: 5px;
+    font-size: 1.2rem;
 }
 
 .edit-btn:hover,
-.magnify-btn:hover {
+.magnify-btn:hover,
+.share-btn:hover {
     background: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
     box-shadow: var(--glow);
 }
-
-.magnify-btn {
-    margin-right: 8px;
-    margin-left: 0;
-}
-
 
 /* Admin Controls */
 .admin-controls {
@@ -486,201 +472,6 @@ textarea {
 .editor-controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.editor-image-display {
-    flex-grow: 1;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-}
-
-.editor-image-display img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.editor-nav-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.editor-nav-btn:hover:not(:disabled) {
-    background: var(--accent-color);
-    box-shadow: var(--glow);
-}
-
-.editor-nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.editor-details {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.editor-counter {
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.file-upload-section {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-}
-
-.file-upload-label-small {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-}
-
-.file-upload-label-small:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.danger-btn-small {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--danger-color);
-    border: 1px solid var(--danger-color);
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-    align-self: flex-start;
-}
-
-.danger-btn-small:hover:not(:disabled) {
-    background: var(--danger-color);
-    color: white;
-}
-
-.danger-btn-small:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    border-color: transparent;
-}
-
-.placeholder-text {
-    color: var(--text-secondary);
-    text-align: center;
-    padding: 20px;
-}
-
-/* Lightbox */
-.lightbox-modal {
-    background: rgba(0, 0, 0, 0.95);
-    padding: 0;
-}
-
-.lightbox-content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-.lightbox-content img {
-    max-width: 90vw;
-    max-height: 85vh;
-    object-fit: contain;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-    animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Bouncy zoom */
-}
-
-@keyframes zoomIn {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.lightbox-close {
-    top: 20px;
-    left: 20px;
-    font-size: 2.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    z-index: 1001;
-}
-
-.lightbox-close:hover {
-    color: var(--accent-color);
-}
-
-.lightbox-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    z-index: 1001;
-}
-
-.lightbox-nav:hover {
-    background: var(--accent-color);
-    box-shadow: var(--glow);
-}
-
-.prev-btn {
-    right: 20px;
-}
-
-.next-btn {
-    left: 20px;
-}
-
-.lightbox-counter {
-    position: absolute;
     justify-content: space-between;
     gap: 10px;
 }
