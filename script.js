@@ -346,7 +346,7 @@ function checkAdminStatus() {
 
 function handleLogin() {
     const password = passwordInput.value;
-    if (password === 'loofisheli1') {
+    if (password === 'tom5') {
         sessionStorage.setItem('isAdmin', 'true');
         enableAdminMode();
         closeModal(loginModal);
