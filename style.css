@@ -981,3 +981,69 @@ body.text-dark #admin-login-btn {
 .lightbox-share:hover {
     color: var(--accent-color);
 }
+/* Description Toggle Styles */
+.price-tag {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.description-wrapper {
+    margin-top: 8px;
+    width: 100%;
+}
+
+.description-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s;
+    width: 100%;
+    font-family: var(--font-family);
+}
+
+.description-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.description-toggle.active {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.artwork-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-top: 8px;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.artwork-description.open {
+    max-height: 500px;
+    opacity: 1;
+    padding: 10px 0;
+}
+
+.artwork-description.hidden {
+    display: block;
+}

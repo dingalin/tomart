@@ -442,6 +442,15 @@ function renderGallery() {
                     <div>
                         <span class="artwork-title">${item.title || ''}</span>
                         <span class="price-tag">${item.price ? '₪' + item.price : ''}</span>
+                        ${item.description ? `
+                            <div class="description-wrapper">
+                                <button class="description-toggle">
+                                    <span class="toggle-text">+ תיאור</span>
+                                    <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                                </button>
+                                <p class="artwork-description hidden">${item.description}</p>
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="item-actions">
                         <button class="whatsapp-icon-btn" aria-label="שלח הודעה"><i class="fa-brands fa-whatsapp"></i></button>
@@ -470,6 +479,43 @@ function renderGallery() {
                 e.stopPropagation();
                 openLightbox(id);
             });
+
+            // Description Toggle Listener
+            const toggleBtn = galleryItem.querySelector('.description-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const desc = galleryItem.querySelector('.artwork-description');
+                    const toggleText = toggleBtn.querySelector('.toggle-text');
+                    const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+
+                    if (desc.classList.contains('open')) {
+                        // Closing
+                        desc.classList.remove('open');
+                        if (toggleText) toggleText.textContent = '+ תיאור';
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
+
+                        // Wait for transition to end before hiding
+                        const transitionEndHandler = () => {
+                            if (!desc.classList.contains('open')) {
+                                desc.classList.add('hidden');
+                            }
+                            desc.removeEventListener('transitionend', transitionEndHandler);
+                        };
+                        desc.addEventListener('transitionend', transitionEndHandler);
+                    } else {
+                        // Opening
+                        desc.classList.remove('hidden');
+                        if (toggleText) toggleText.textContent = '- תיאור';
+                        if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
+                        // Force reflow to ensure transition plays
+                        void desc.offsetWidth;
+                        desc.classList.add('open');
+                    }
+
+                    toggleBtn.classList.toggle('active');
+                });
+            }
 
             galleryItem.querySelector('.whatsapp-icon-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
