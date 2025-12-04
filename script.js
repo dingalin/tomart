@@ -67,6 +67,9 @@ const lightboxCounter = document.getElementById('lightbox-counter');
 const lightboxDescription = document.getElementById('lightbox-description');
 const lightboxPrev = document.getElementById('lightbox-prev');
 const lightboxNext = document.getElementById('lightbox-next');
+const lightboxInnerPrev = document.getElementById('lightbox-inner-prev');
+const lightboxInnerNext = document.getElementById('lightbox-inner-next');
+const lightboxInnerCounter = document.getElementById('lightbox-inner-counter');
 
 // Background Settings Elements
 const changeBgBtn = document.getElementById('change-bg-btn');
@@ -88,6 +91,7 @@ let currentEditIndex = 0;
 let folders = {};
 let allImages = []; // Store all images for lightbox navigation
 let currentLightboxIndex = 0;
+let currentInternalIndex = 0;
 let currentBgSettings = {
     type: 'default', // 'default', 'gradient', 'image'
     value: 'bg-gradient-default', // class name or base64 string
@@ -101,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     checkAdminStatus();
     initBackgroundSettings();
+    initHeroVideo();
 });
 
 function setupEventListeners() {
@@ -155,12 +160,133 @@ function setupEventListeners() {
         navigateLightbox(1);
     });
 
+    // Lightbox Inner Navigation
+    lightboxInnerPrev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateInternal(-1);
+    });
+    lightboxInnerNext.addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigateInternal(1);
+    });
+
     // Keyboard Navigation
     document.addEventListener('keydown', (e) => {
         if (!lightboxModal.classList.contains('hidden')) {
             if (e.key === 'ArrowRight') navigateLightbox(-1); // RTL: Right is Prev
             if (e.key === 'ArrowLeft') navigateLightbox(1);   // RTL: Left is Next
             if (e.key === 'Escape') closeModal(lightboxModal);
+        }
+    });
+}
+
+// --- Hero Video Logic ---
+const heroVideoContainer = document.getElementById('hero-video-container');
+const heroVideo = document.getElementById('hero-video');
+const manageVideoBtn = document.getElementById('manage-video-btn');
+const videoModal = document.getElementById('video-modal');
+const videoUpload = document.getElementById('video-upload');
+const videoPreviewContainer = document.getElementById('video-preview-container');
+const videoPreview = document.getElementById('video-preview');
+const saveVideoBtn = document.getElementById('save-video-btn');
+const removeVideoBtn = document.getElementById('remove-video-btn');
+
+function initHeroVideo() {
+    loadHeroVideo();
+
+    if (manageVideoBtn) {
+        manageVideoBtn.addEventListener('click', () => {
+            openModal(videoModal);
+            updateVideoModalUI();
+        });
+    }
+
+    if (videoUpload) {
+        videoUpload.addEventListener('change', handleVideoUpload);
+    }
+
+    if (saveVideoBtn) {
+        saveVideoBtn.addEventListener('click', saveHeroVideo);
+    }
+
+    if (removeVideoBtn) {
+        removeVideoBtn.addEventListener('click', removeHeroVideo);
+    }
+}
+
+function loadHeroVideo() {
+    const videoRef = db.ref('settings/heroVideo');
+    videoRef.on('value', (snapshot) => {
+        const videoData = snapshot.val();
+        if (videoData && videoData.src) {
+            heroVideoContainer.classList.remove('hidden');
+            heroVideo.src = videoData.src;
+            heroVideo.play().catch(e => console.log('Autoplay prevented:', e));
+        } else {
+            heroVideoContainer.classList.add('hidden');
+            heroVideo.src = '';
+        }
+    });
+}
+
+function updateVideoModalUI() {
+    videoUpload.value = '';
+    videoPreviewContainer.classList.add('hidden');
+    videoPreview.src = '';
+
+    // If there is a current video, maybe show it?
+    // For now we just let them upload a new one.
+}
+
+async function handleVideoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit warning
+        alert('שים לב: הקובץ גדול מ-10MB. זה עלול להאט את האתר.');
+    }
+
+    try {
+        const base64 = await readFileAsBase64(file);
+        videoPreviewContainer.classList.remove('hidden');
+        videoPreview.src = base64;
+    } catch (error) {
+        alert('שגיאה בטעינת הסרטון: ' + error.message);
+    }
+}
+
+async function saveHeroVideo() {
+    if (videoPreviewContainer.classList.contains('hidden') || !videoPreview.src) {
+        alert('אנא בחר סרטון תחילה');
+        return;
+    }
+
+    saveVideoBtn.textContent = 'שומר...';
+    saveVideoBtn.disabled = true;
+
+    try {
+        await db.ref('settings/heroVideo').set({
+            src: videoPreview.src,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        closeModal(videoModal);
+        alert('הסרטון עודכן בהצלחה!');
+    } catch (error) {
+        alert('שגיאה בשמירה: ' + error.message);
+    } finally {
+        saveVideoBtn.textContent = 'שמור סרטון';
+        saveVideoBtn.disabled = false;
+    }
+}
+
+function removeHeroVideo() {
+    openConfirmModal('האם אתה בטוח שברצונך להסיר את הסרטון?', async () => {
+        try {
+            await db.ref('settings/heroVideo').remove();
+            closeModal(videoModal);
+            alert('הסרטון הוסר בהצלחה');
+        } catch (error) {
+            alert('שגיאה בהסרה: ' + error.message);
         }
     });
 }
@@ -204,10 +330,10 @@ function initBackgroundSettings() {
 
     if (resetBgBtn) {
         resetBgBtn.addEventListener('click', () => {
-            if (confirm('האם אתה בטוח שברצונך לאפס את הרקע לברירת המחדל?')) {
+            openConfirmModal('האם אתה בטוח שברצונך לאפס את הרקע לברירת המחדל?', () => {
                 currentBgSettings = { type: 'default', value: 'bg-gradient-default', textColor: 'light' };
                 saveBackgroundSettings();
-            }
+            });
         });
     }
 }
@@ -659,17 +785,62 @@ function updateSpecificDescription(e) {
     }
 }
 
+// Confirm Modal Logic
+const confirmModal = document.getElementById('confirm-modal');
+const confirmTitle = document.getElementById('confirm-title');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmYesBtn = document.getElementById('confirm-yes-btn');
+const confirmNoBtn = document.getElementById('confirm-no-btn');
+let confirmCallback = null;
+
+function openConfirmModal(message, callback) {
+    confirmMessage.textContent = message;
+    confirmCallback = callback;
+    openModal(confirmModal);
+}
+
+if (confirmYesBtn) {
+    confirmYesBtn.addEventListener('click', () => {
+        if (confirmCallback) confirmCallback();
+        closeModal(confirmModal);
+        confirmCallback = null;
+    });
+}
+
+if (confirmNoBtn) {
+    confirmNoBtn.addEventListener('click', () => {
+        closeModal(confirmModal);
+        confirmCallback = null;
+    });
+}
+
 function deleteCurrentEditorImage() {
-    if (confirm('האם אתה בטוח שברצונך למחוק תמונה זו?')) {
+    console.log('Delete button clicked. Index:', currentEditIndex, 'Total:', currentEditImages.length);
+
+    // Validate index
+    if (currentEditIndex < 0 || currentEditIndex >= currentEditImages.length) {
+        console.error('Invalid index!');
+        alert('שגיאה: לא ניתן למחוק תמונה זו (אינדקס לא תקין). המערכת תרענן את התצוגה.');
+        renderImageEditor(); // This will clamp the index
+        return;
+    }
+
+    openConfirmModal('האם אתה בטוח שברצונך למחוק תמונה זו?', () => {
+        console.log('User confirmed deletion.');
         currentEditImages.splice(currentEditIndex, 1);
+
+        // Alert the user
+        alert(`התמונה נמחקה מהרשימה. נותרו ${currentEditImages.length} תמונות.\nאל תשכח ללחוץ על "שמור" כדי לעדכן את השינויים באתר!`);
+
         if (currentEditIndex >= currentEditImages.length) {
             currentEditIndex = Math.max(0, currentEditImages.length - 1);
         }
         renderImageEditor();
-    }
+    });
 }
 
 async function saveImage() {
+    console.log('Saving images:', currentEditImages);
     const price = priceInput.value;
     const title = titleInput.value;
     const description = descriptionInput.value;
@@ -723,11 +894,11 @@ async function saveImage() {
 }
 
 function deleteImage() {
-    if (confirm('האם אתה בטוח שברצונך למחוק את היצירה כולה?')) {
+    openConfirmModal('האם אתה בטוח שברצונך למחוק את היצירה כולה?', () => {
         db.ref(`images/${editingId}`).remove()
             .then(() => closeModal(imageModal))
             .catch(err => alert('שגיאה במחיקה: ' + err.message));
-    }
+    });
 }
 
 // --- Folder Management ---
@@ -769,9 +940,9 @@ function addFolder() {
 }
 
 window.deleteFolder = function (id) {
-    if (confirm('האם אתה בטוח? התמונות בתיקייה זו לא יימחקו, אך יוסרו מהתיקייה.')) {
+    openConfirmModal('האם אתה בטוח? התמונות בתיקייה זו לא יימחקו, אך יוסרו מהתיקייה.', () => {
         foldersRef.child(id).remove();
-    }
+    });
 };
 
 // --- WhatsApp ---
@@ -800,6 +971,7 @@ function openLightbox(id) {
     currentLightboxIndex = allImages.findIndex(img => img.id === id);
     if (currentLightboxIndex === -1) return;
 
+    currentInternalIndex = 0; // Reset internal index
     updateLightboxContent();
     lightboxModal.classList.remove('hidden');
 }
@@ -807,15 +979,45 @@ function openLightbox(id) {
 function updateLightboxContent() {
     const item = allImages[currentLightboxIndex];
 
-    // Use high-res image if available (currently just using src)
-    // If item has multiple images, we could implement sub-gallery in lightbox, 
-    // but for now let's show the main image.
-    // TODO: Support multiple images in lightbox if requested.
-    const imgSrc = item.images ? item.images[0].src : item.src;
+    let imgSrc = item.src;
+    let hasMultiple = false;
+    let totalInternal = 1;
+
+    if (item.images && item.images.length > 0) {
+        // Ensure index is valid
+        if (currentInternalIndex >= item.images.length) currentInternalIndex = 0;
+
+        imgSrc = item.images[currentInternalIndex].src;
+        hasMultiple = item.images.length > 1;
+        totalInternal = item.images.length;
+    }
 
     lightboxImage.src = imgSrc;
     lightboxDescription.textContent = item.title || '';
     lightboxCounter.textContent = `${currentLightboxIndex + 1} / ${allImages.length}`;
+
+    // Handle Inner Navigation UI
+    if (hasMultiple) {
+        lightboxInnerPrev.style.display = 'flex';
+        lightboxInnerNext.style.display = 'flex';
+        lightboxInnerCounter.style.display = 'block';
+        lightboxInnerCounter.textContent = `${currentInternalIndex + 1} / ${totalInternal}`;
+    } else {
+        lightboxInnerPrev.style.display = 'none';
+        lightboxInnerNext.style.display = 'none';
+        lightboxInnerCounter.style.display = 'none';
+    }
+}
+
+function navigateInternal(direction) {
+    const item = allImages[currentLightboxIndex];
+    if (!item.images || item.images.length <= 1) return;
+
+    currentInternalIndex += direction;
+    if (currentInternalIndex >= item.images.length) currentInternalIndex = 0;
+    if (currentInternalIndex < 0) currentInternalIndex = item.images.length - 1;
+
+    updateLightboxContent();
 }
 
 function navigateLightbox(direction) {

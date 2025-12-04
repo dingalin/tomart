@@ -30,11 +30,20 @@
         </div>
     </header>
 
+    <div id="hero-video-container" class="hero-video-container hidden">
+        <video id="hero-video" autoplay loop muted playsinline>
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
     <main>
         <div id="admin-controls" class="admin-controls hidden">
             <button id="add-image-btn" class="primary-btn"><i class="fa-solid fa-plus"></i> הוסף יצירה חדשה</button>
             <button id="manage-folders-btn" class="secondary-btn"><i class="fa-solid fa-folder"></i> ניהול
                 תיקיות</button>
+            <button id="manage-video-btn" class="secondary-btn"><i class="fa-solid fa-video"></i> ניהול סרטון</button>
             <button id="change-bg-btn" class="secondary-btn"><i class="fa-solid fa-palette"></i> שנה רקע</button>
             <button id="admin-logout-btn" class="danger-btn"><i class="fa-solid fa-right-from-bracket"></i>
                 יציאה</button>
@@ -210,6 +219,33 @@
         </div>
     </div>
 
+    <div id="video-modal" class="modal hidden" role="dialog" aria-labelledby="video-modal-title">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2 id="video-modal-title">ניהול סרטון ראשי</h2>
+
+            <div class="bg-section">
+                <h3>העלה סרטון (מומלץ עד 5MB)</h3>
+                <div class="file-upload-section">
+                    <label for="video-upload" class="file-upload-label-small">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> בחר סרטון מהמכשיר
+                    </label>
+                    <input type="file" id="video-upload" accept="video/*" hidden>
+                </div>
+                <div id="video-preview-container" class="hidden">
+                    <p>תצוגה מקדימה:</p>
+                    <video id="video-preview" controls
+                        style="max-width: 100%; max-height: 200px; border-radius: 8px;"></video>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="save-video-btn" class="primary-btn">שמור סרטון</button>
+                <button id="remove-video-btn" class="danger-btn">הסר סרטון</button>
+            </div>
+        </div>
+    </div>
+
     <!-- WhatsApp Confirmation Modal -->
     <div id="whatsapp-modal" class="modal hidden" role="dialog" aria-labelledby="whatsapp-title">
         <div class="modal-content glass-panel">
@@ -220,6 +256,19 @@
                 <button id="whatsapp-yes-btn" class="primary-btn whatsapp-btn">כן, שלח הודעה <i
                         class="fa-brands fa-whatsapp"></i></button>
                 <button id="whatsapp-no-btn" class="danger-btn">לא, תודה</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal hidden" role="dialog" aria-labelledby="confirm-title">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2 id="confirm-title">אישור פעולה</h2>
+            <p id="confirm-message">האם אתה בטוח?</p>
+            <div class="modal-actions">
+                <button id="confirm-yes-btn" class="primary-btn">כן</button>
+                <button id="confirm-no-btn" class="danger-btn">לא</button>
             </div>
         </div>
     </div>
@@ -236,7 +285,16 @@
         </button>
 
         <div class="lightbox-content">
-            <img id="lightbox-image" src="" alt="תמונה בגודל מלא">
+            <div class="lightbox-image-container">
+                <button id="lightbox-inner-prev" class="lightbox-inner-nav prev" aria-label="תמונה קודמת בפריט">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <img id="lightbox-image" src="" alt="תמונה בגודל מלא">
+                <button id="lightbox-inner-next" class="lightbox-inner-nav next" aria-label="תמונה הבאה בפריט">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div id="lightbox-inner-counter" class="lightbox-inner-counter"></div>
+            </div>
             <div id="lightbox-counter" class="lightbox-counter"></div>
             <div id="lightbox-description" class="lightbox-description"></div>
         </div>
