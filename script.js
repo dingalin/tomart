@@ -470,9 +470,23 @@ function checkAdminStatus() {
     }
 }
 
-function handleLogin() {
+// SHA-256 hash of the admin password
+const ADMIN_PASSWORD_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'; // hash of 'tom5'
+
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleLogin() {
     const password = passwordInput.value;
-    if (password === 'tom5') {
+    const hashedInput = await hashPassword(password);
+
+    // Compare hashes instead of plain text
+    if (hashedInput === '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824') {
         sessionStorage.setItem('isAdmin', 'true');
         enableAdminMode();
         closeModal(loginModal);
