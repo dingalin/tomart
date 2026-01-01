@@ -486,7 +486,7 @@ async function handleLogin() {
     const hashedInput = await hashPassword(password);
 
     // Compare hashes instead of plain text
-    if (hashedInput === '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824') {
+    if (hashedInput === '0850d52e53abff3a28354f8f051ae637ef43b3112511447c8564f0bc12c25996') {
         sessionStorage.setItem('isAdmin', 'true');
         enableAdminMode();
         closeModal(loginModal);
